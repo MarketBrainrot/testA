@@ -167,10 +167,21 @@ export default function AdminPanel() {
       if (!toggle) return;
       try {
         const scope = scopeSelect?.value || "global";
-        const message = toggle.checked
-          ? (document.getElementById("maintenance-message") as HTMLInputElement)
-              ?.value || ""
-          : "";
+        let message = "";
+        if (toggle.checked) {
+          message = (document.getElementById("maintenance-message") as HTMLInputElement)
+            ?.value?.trim?.() || "";
+          if (!message) {
+            // default messages per scope
+            const defaults: Record<string, string> = {
+              global: "Site en maintenance. Retour rapide.",
+              marketplace: "Marketplace momentanément indisponible.",
+              shop: "Boutique en maintenance.",
+              tickets: "Service support momentanément indisponible.",
+            };
+            message = defaults[scope] || "Maintenance en cours";
+          }
+        }
         // write to maintenance/global for a clear global maintenance document
         const maintRef2 = doc(db, "maintenance", "global");
         await setDoc(
