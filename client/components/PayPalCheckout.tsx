@@ -19,7 +19,8 @@ export default function PayPalCheckout({
   const [ready, setReady] = useState(false);
   const [fallbackLoading, setFallbackLoading] = useState(false);
   const [fallbackError, setFallbackError] = useState<string | null>(null);
-  const FALLBACK_PAYPAL_CLIENT_ID = "EDbaSQog99RXGYk9yW1-WBSslvtRvD5tf51RtiEUSE1rs5Fk9AktXNt6eUt3hWW1Yq9NqQqXKgzN0sLn";
+  // Public PayPal client id (fallback) — DO NOT use the secret here
+  const FALLBACK_PAYPAL_CLIENT_ID = "AXLbZ7s1bZ0GJMLY78N-DAOC-7O2qITENp1m1bbgKjWDSD-iPdmsL_ndV1l5lFecte8RyYEqlyd4rQ5Z";
   const clientId =
     (import.meta.env.VITE_PAYPAL_CLIENT_ID as string | undefined) ||
     FALLBACK_PAYPAL_CLIENT_ID;
