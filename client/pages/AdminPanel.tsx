@@ -549,6 +549,14 @@ export default function AdminPanel() {
                   >
                     {savingRole ? "Sauvegarde…" : "Sauvegarder"}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-2"
+                    onClick={() => setWarnOpen(true)}
+                  >
+                    Avertir
+                  </Button>
                   <span className="ml-4 text-xs text-foreground/70">
                     Crédits:
                   </span>
