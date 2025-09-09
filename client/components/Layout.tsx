@@ -11,6 +11,8 @@ import {
   Home,
   BadgeCheck,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
@@ -44,6 +46,7 @@ const nav = [
 
 function Header() {
   const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-background/80 border-b border-border">
       <div className="container grid h-14 md:h-16 grid-cols-2 md:grid-cols-[auto,1fr,auto] items-center gap-2 md:gap-6">
@@ -79,6 +82,15 @@ function Header() {
           ))}
         </nav>
         <div className="flex items-center justify-end gap-3">
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-muted/60"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           {!user ? (
             <>
               <Button
@@ -100,6 +112,86 @@ function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile slide-over menu */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm p-6">
+          <div className="flex items-center justify-between">
+            <Link
+              to="/"
+              className="flex items-center gap-2"
+              onClick={() => setMobileOpen(false)}
+            >
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800"
+                alt="logo"
+                className="h-8 w-8 rounded-md object-cover"
+              />
+              <span className="font-display text-lg">Brainrot Market</span>
+            </Link>
+            <button
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="p-2 rounded-md hover:bg-muted/60"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <nav className="mt-6 flex flex-col gap-2">
+            {nav.map(({ to, label }) => (
+              <Link
+                to={to}
+                key={to}
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="mt-6">
+            {!user ? (
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-center"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white"
+                >
+                  S'inscrire
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm"
+                >
+                  Profil
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileOpen(false);
+                  }}
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-left"
+                >
+                  Déconnexion
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -539,20 +631,7 @@ export default function Layout() {
       "/sell": "Vendre — Brainrot Market",
       "/profile": "Profil — Brainrot Market",
     };
-    const setTitle = () => {
-      const w = window.innerWidth;
-      const base = titles[pathname] || "Brainrot Market";
-      // Shorten title for small screens to avoid truncation in mobile tabs
-      if (w < 480) {
-        // If base is already short, use it; otherwise use compact label
-        document.title = base.length <= 20 ? base : "BR Market";
-      } else {
-        document.title = base;
-      }
-    };
-    setTitle();
-    window.addEventListener("resize", setTitle);
-    return () => window.removeEventListener("resize", setTitle);
+    document.title = titles[pathname] || "Brainrot Market";
   }, [pathname]);
 
   useEffect(() => {
