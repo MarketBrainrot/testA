@@ -191,5 +191,54 @@ export default function PayPalCheckout({
     );
   }
 
-  return <div ref={ref} />;
+  // If SDK ready, render buttons container
+  if (ready) return <div ref={ref} />;
+
+  // Fallback: create order via server and open approve URL in a new window
+  const createOrderFallback = async () => {
+    setFallbackError(null);
+    setFallbackLoading(true);
+    try {
+      const resp = await fetch("/api/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, currency }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.message || data?.error || "create_order_failed");
+      }
+      const url = data.approveUrl || data.order?.links?.find((l: any) => l.rel === "approve")?.href;
+      if (!url) throw new Error("approve_url_missing");
+      // open approval in a new tab/window
+      window.open(url, "_blank", "noopener,noreferrer");
+      // notify user that payment will be processed via webhook
+      setFallbackLoading(false);
+      setFallbackError(null);
+      // Give feedback to the UI: the server/webhook will process the capture and update user credits
+      return;
+    } catch (e: any) {
+      console.error("createOrderFallback failed", e);
+      setFallbackError(String(e?.message || e));
+      setFallbackLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="rounded-md border border-border/60 bg-card p-3 text-sm text-foreground/80">
+        <div>Le bouton PayPal n'a pas pu se charger. Vous pouvez ouvrir le paiement dans une nouvelle fenêtre.</div>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={createOrderFallback}
+            disabled={fallbackLoading}
+            className="rounded-md bg-primary px-3 py-2 text-white"
+          >
+            {fallbackLoading ? "Ouverture…" : "Payer via PayPal"}
+          </button>
+          {fallbackError && <div className="text-sm text-destructive">Erreur: {fallbackError}</div>}
+        </div>
+      </div>
+    </div>
+  );
 }
