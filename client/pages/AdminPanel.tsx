@@ -1015,6 +1015,50 @@ export default function AdminPanel() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Warn modal */}
+      {warnOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+          <div className="rounded-xl bg-card p-4 w-full max-w-md">
+            <h3 className="font-semibold">Avertir l'utilisateur</h3>
+            <div className="mt-3 space-y-2">
+              <div className="text-sm text-foreground/70">Raison</div>
+              <div className="flex flex-wrap gap-2">
+                {WARN_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    className={`px-3 py-2 rounded-md border ${warnReason === p ? "border-primary bg-primary/10" : "border-border/60"}`}
+                    onClick={() => setWarnReason(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <Input
+                placeholder="Précisez si 'Autre'"
+                value={warnReason}
+                onChange={(e) => setWarnReason(e.target.value)}
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setWarnOpen(false); setWarnReason(""); }}>
+                  Annuler
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!userId) return;
+                    await sendWarning(userId, warnReason || "Avertissement");
+                    setWarnOpen(false);
+                    setWarnReason("");
+                  }}
+                >
+                  Envoyer avertissement
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
