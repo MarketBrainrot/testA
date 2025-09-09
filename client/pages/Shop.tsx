@@ -162,7 +162,7 @@ export default function Shop() {
                             email: user?.email,
                             type: "credits_purchase",
                             orderId,
-                            amountEUR: p.price,
+                            amountEUR: Number((p.price * (1 - promo / 100)).toFixed(2)),
                             credits,
                             createdAt: serverTimestamp(),
                           });
