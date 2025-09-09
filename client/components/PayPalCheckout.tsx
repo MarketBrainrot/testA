@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import React, { useEffect, useRef, useState } from "react";
+
 declare global {
   interface Window {
     paypal?: any;
@@ -17,6 +19,8 @@ export default function PayPalCheckout({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const [fallbackLoading, setFallbackLoading] = useState(false);
+  const [fallbackError, setFallbackError] = useState<string | null>(null);
   const FALLBACK_PAYPAL_CLIENT_ID = "EDbaSQog99RXGYk9yW1-WBSslvtRvD5tf51RtiEUSE1rs5Fk9AktXNt6eUt3hWW1Yq9NqQqXKgzN0sLn";
   const clientId =
     (import.meta.env.VITE_PAYPAL_CLIENT_ID as string | undefined) ||
