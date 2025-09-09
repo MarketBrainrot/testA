@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  Trophy,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
@@ -38,6 +39,7 @@ import Notifications from "@/components/Notifications";
 const nav = [
   { to: "/", label: "Accueil", icon: Home },
   { to: "/marketplace", label: "Marketplace", icon: ShoppingCart },
+  { to: "/sell", label: "Vendre", icon: Trophy },
   { to: "/shop", label: "RotCoins", icon: Coins },
   { to: "/quests", label: "Quêtes", icon: BadgeCheck },
   { to: "/tickets", label: "Tickets", icon: LifeBuoy },
@@ -47,6 +49,7 @@ const nav = [
 function Header() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Prevent background scrolling while mobile menu is open
   useEffect(() => {
@@ -59,6 +62,13 @@ function Header() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Close "More" dropdown on navigation or click outside
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => setMoreOpen(false);
+    if (moreOpen) window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, [moreOpen]);
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-background/80 border-b border-border">
@@ -77,22 +87,59 @@ function Header() {
           </span>
         </Link>
         <nav className="hidden md:flex items-center justify-center gap-1">
-          {nav.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 ${
-                  isActive
-                    ? "bg-muted text-foreground"
-                    : "text-foreground/80 hover:text-foreground hover:bg-muted"
-                }`
-              }
-            >
-              <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              {label}
-            </NavLink>
-          ))}
+          {(() => {
+            const visible = nav.slice(0, 4);
+            const more = nav.slice(4);
+            return (
+              <>
+                {visible.map(({ to, label, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      `px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 ${
+                        isActive
+                          ? "bg-muted text-foreground"
+                          : "text-foreground/80 hover:text-foreground hover:bg-muted"
+                      }`
+                    }
+                  >
+                    <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    {label}
+                  </NavLink>
+                ))}
+
+                {more.length > 0 && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMoreOpen((s) => !s);
+                      }}
+                      className="px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 text-foreground/80 hover:text-foreground hover:bg-muted"
+                    >
+                      Plus
+                    </button>
+                    {moreOpen && (
+                      <div className="absolute mt-2 right-0 w-48 rounded-md border border-border/60 bg-card shadow-lg py-1">
+                        {more.map(({ to, label }) => (
+                          <NavLink
+                            to={to}
+                            key={to}
+                            onClick={() => setMoreOpen(false)}
+                            className="block px-3 py-2 text-sm text-foreground/90 hover:bg-muted"
+                          >
+                            {label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </nav>
         <div className="flex items-center justify-end gap-3">
           {/* Mobile menu button */}
