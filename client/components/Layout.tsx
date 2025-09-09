@@ -184,7 +184,7 @@ function Header() {
                 aria-modal="true"
                 onClick={() => setMobileOpen(false)}
               >
-                <div className="relative z-[1000000] h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
+                <div className="relative z-[1000000] h-full overflow-auto p-6 text-foreground menu-animate" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
                       <img src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800" alt="logo" className="h-8 w-8 rounded-md object-cover" />
