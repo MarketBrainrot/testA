@@ -173,93 +173,53 @@ function Header() {
         </div>
       </div>
 
-      {/* Mobile slide-over menu */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-sm p-0"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setMobileOpen(false)}
-        >
-          {/* inner panel stops propagation so clicks inside don't close */}
-          <div className="relative z-[100000] h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <Link
-                to="/"
-                className="flex items-center gap-2"
+      {/* Portal menu: render under body to escape header stacking contexts */}
+      {mobileOpen &&
+        (typeof document !== "undefined"
+          ? createPortal(
+              <div
+                className="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-sm p-0"
+                role="dialog"
+                aria-modal="true"
                 onClick={() => setMobileOpen(false)}
               >
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800"
-                  alt="logo"
-                  className="h-8 w-8 rounded-md object-cover"
-                />
-                <span className="font-display text-lg">Brainrot Market</span>
-              </Link>
-              <button
-                onClick={() => setMobileOpen(false)}
-                aria-label="Close menu"
-                className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+                <div className="relative z-[1000000] h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+                      <img src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800" alt="logo" className="h-8 w-8 rounded-md object-cover" />
+                      <span className="font-display text-lg">Brainrot Market</span>
+                    </Link>
+                    <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
 
-            <nav className="mt-6 flex flex-col gap-2 text-foreground">
-              {nav.map(({ to, label }) => (
-                <Link
-                  to={to}
-                  key={to}
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
+                  <nav className="mt-6 flex flex-col gap-2 text-foreground">
+                    {nav.map(({ to, label }) => (
+                      <Link to={to} key={to} onClick={() => setMobileOpen(false)} className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground">
+                        {label}
+                      </Link>
+                    ))}
+                  </nav>
 
-            <div className="mt-6">
-              {!user ? (
-                <div className="flex flex-col gap-2">
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground"
-                  >
-                    Se connecter
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setMobileOpen(false)}
-                    className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white"
-                  >
-                    S'inscrire
-                  </Link>
+                  <div className="mt-6">
+                    {!user ? (
+                      <div className="flex flex-col gap-2">
+                        <Link to="/login" onClick={() => setMobileOpen(false)} className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground">Se connecter</Link>
+                        <Link to="/register" onClick={() => setMobileOpen(false)} className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white">S'inscrire</Link>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <Link to="/profile" onClick={() => setMobileOpen(false)} className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground">Profil</Link>
+                        <button onClick={() => { logout(); setMobileOpen(false); }} className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground">Déconnexion</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <Link
-                    to="/profile"
-                    onClick={() => setMobileOpen(false)}
-                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground"
-                  >
-                    Profil
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileOpen(false);
-                    }}
-                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground"
-                  >
-                    Déconnexion
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+              </div>,
+              document.body,
+            )
+          : null)}
     </header>
   );
 }
@@ -281,7 +241,7 @@ function CompactRole({ role }: { role: string }) {
   const map: Record<string, { label: string; icon: React.ReactNode }> = {
     founder: { label: "Fondateur", icon: <span>👑</span> },
     moderator: { label: "Mod", icon: <span>🛡️</span> },
-    helper: { label: "Helper", icon: <span>🧰</span> },
+    helper: { label: "Helper", icon: <span>����</span> },
     user: { label: "User", icon: <span>👤</span> },
   };
   const cfg = map[role] ?? map.user;
