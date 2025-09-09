@@ -144,7 +144,7 @@ function Header() {
         <div className="flex items-center justify-end gap-3">
           {/* Mobile menu button */}
           <button
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-muted/60"
+            className="inline-flex items-center justify-center p-2 rounded-md hover:bg-muted/60"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
           >
