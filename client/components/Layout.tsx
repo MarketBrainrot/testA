@@ -176,7 +176,7 @@ function Header() {
       {/* Mobile slide-over menu */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-0"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-0"
           role="dialog"
           aria-modal="true"
           onClick={() => setMobileOpen(false)}
