@@ -220,6 +220,11 @@ export default function PayPalCheckout({
         }
       }
       if (!resp.ok) {
+        // If server returned PayPal-specific error details, show actionable message
+        if (data?.error === "payee_account_restricted" || data?.details?.some?.((d: any) => d.issue === "PAYEE_ACCOUNT_RESTRICTED")) {
+          const debug = data?.details || data;
+          throw new Error(`PayPal error: merchant account restricted. Contact PayPal with debug_id: ${debug?.debug_id || debug?.debug_id || data?.debug_id || "n/a"}`);
+        }
         const message = data?.message || data?.error || data?.text || "create_order_failed";
         throw new Error(message);
       }
