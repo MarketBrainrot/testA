@@ -86,7 +86,7 @@ function Header() {
             </span>
           </span>
         </Link>
-        <nav className="hidden md:flex items-center justify-center gap-1">
+        <nav className="hidden items-center justify-center gap-1">
           {(() => {
             const visible = nav.slice(0, 4);
             const more = nav.slice(4);
