@@ -176,13 +176,13 @@ function Header() {
       {/* Mobile slide-over menu */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-0"
+          className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-sm p-0"
           role="dialog"
           aria-modal="true"
           onClick={() => setMobileOpen(false)}
         >
           {/* inner panel stops propagation so clicks inside don't close */}
-          <div className="h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-[100000] h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <Link
                 to="/"
