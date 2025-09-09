@@ -115,7 +115,7 @@ function Header() {
 
       {/* Mobile slide-over menu */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm p-6">
+        <div className="md:hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-6 text-foreground">
           <div className="flex items-center justify-between">
             <Link
               to="/"
@@ -132,19 +132,19 @@ function Header() {
             <button
               onClick={() => setMobileOpen(false)}
               aria-label="Close menu"
-              className="p-2 rounded-md hover:bg-muted/60"
+              className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <nav className="mt-6 flex flex-col gap-2">
+          <nav className="mt-6 flex flex-col gap-2 text-foreground">
             {nav.map(({ to, label }) => (
               <Link
                 to={to}
                 key={to}
                 onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2"
+                className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground"
               >
                 {label}
               </Link>
@@ -157,7 +157,7 @@ function Header() {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-center"
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground"
                 >
                   Se connecter
                 </Link>
@@ -174,7 +174,7 @@ function Header() {
                 <Link
                   to="/profile"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm"
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground"
                 >
                   Profil
                 </Link>
@@ -183,7 +183,7 @@ function Header() {
                     logout();
                     setMobileOpen(false);
                   }}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-left"
+                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground"
                 >
                   Déconnexion
                 </button>
