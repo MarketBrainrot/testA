@@ -85,6 +85,32 @@ export default function AdminPanel() {
   const [savingRole, setSavingRole] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [warnOpen, setWarnOpen] = useState(false);
+  const [warnReason, setWarnReason] = useState("");
+  const WARN_PRESETS = [
+    "Comportement inapproprié",
+    "Violation des règles",
+    "Spam / Publicité",
+    "Autre (préciser)",
+  ];
+
+  const sendWarning = async (targetUserId: string, reason: string) => {
+    try {
+      await updateDoc(doc(db, "users", targetUserId), {
+        notifications: arrayUnion({
+          type: "warn",
+          text: `Avertissement: ${reason}`,
+          reason,
+          createdAt: Timestamp.now(),
+          read: false,
+        }),
+      });
+      toast({ title: "Avertissement envoyé" });
+    } catch (e) {
+      console.error("sendWarning failed", e);
+      toast({ title: "Erreur envoi avertissement", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "users"), (snap) => {
