@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import { db } from "@/lib/firebase";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
