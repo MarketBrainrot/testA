@@ -24,80 +24,116 @@ export default function PayPalCheckout({
 
   useEffect(() => {
     if (!clientId) return;
-    const qs = new URLSearchParams({
-      "client-id": clientId,
-      currency,
-    }).toString();
-    const src = `https://www.paypal.com/sdk/js?${qs}`;
 
-    let existing = document.querySelector(
-      `script[src^="https://www.paypal.com/sdk/js"]`,
-    ) as HTMLScriptElement | null;
+    const buildSrc = (cid: string) =>
+      `https://www.paypal.com/sdk/js?${new URLSearchParams({
+        "client-id": cid,
+        currency,
+        intent: "capture",
+        commit: "true",
+      }).toString()}`;
 
-    // If an existing PayPal script points to a different client or params, remove it
-    if (existing && existing.src !== src) {
-      try {
-        existing.remove();
-      } catch {}
-      existing = null;
-    }
+    let attempts = 0;
+    const maxAttempts = 2;
+    let mounted = true;
+    let timeoutHandle: any;
+    let currentScript: HTMLScriptElement | null = null;
 
-    const script =
-      existing ??
-      Object.assign(document.createElement("script"), {
-        src,
-        async: true,
-      });
-
-    // Attach metadata for easier debugging
-    try {
-      script.setAttribute("data-paypal-client-id", clientId);
-    } catch {}
-    script.crossOrigin = "anonymous";
-
-    if (!existing) document.body.appendChild(script);
+    const cleanup = () => {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (currentScript) {
+        try {
+          currentScript.removeEventListener("load", onLoad);
+          currentScript.removeEventListener("error", onError);
+        } catch {}
+      }
+    };
 
     const onLoad = () => {
-      // ensure SDK available
-      if ((window as any).paypal) setReady(true);
-      else {
+      if (!mounted) return;
+      if ((window as any).paypal) {
+        setReady(true);
+        cleanup();
+      } else {
         console.error("PayPal script loaded but window.paypal is missing", {
-          src,
+          src: currentScript?.src,
           clientId,
         });
         setReady(false);
+        cleanup();
       }
     };
 
     const onError = (ev: Event) => {
-      // Provide richer info in logs
-      console.error("PayPal script failed to load", {
-        src: script.src,
-        event: ev,
+      if (!mounted) return;
+      console.error("PayPal script failed to load:", JSON.stringify({
+        src: currentScript?.src,
         clientId,
-      });
+        error: (ev as any)?.message || ev,
+      }));
       setReady(false);
+      cleanup();
+      // retry logic
+      if (attempts < maxAttempts) {
+        attempts += 1;
+        // remove script element if present
+        try {
+          currentScript?.remove();
+        } catch {}
+        // retry after short delay
+        setTimeout(loadScript, 800);
+      }
     };
 
-    // Timeout fallback
-    const timeout = setTimeout(() => {
-      if (!(window as any).paypal) {
-        console.error("PayPal SDK load timed out", { src, clientId });
-        setReady(false);
+    const loadScript = () => {
+      const src = buildSrc(clientId);
+      // if an existing script already present with same src, reuse
+      const existing = document.querySelector(`script[src^="https://www.paypal.com/sdk/js"]`) as HTMLScriptElement | null;
+      if (existing && existing.getAttribute("data-paypal-client-id") === clientId) {
+        currentScript = existing;
+        // if paypal already loaded
+        if ((window as any).paypal) {
+          setReady(true);
+          return;
+        }
+      } else {
+        // remove any old paypal script to avoid conflicts
+        if (existing) {
+          try { existing.remove(); } catch {}
+        }
+        currentScript = document.createElement("script");
+        currentScript.src = src;
+        currentScript.async = true;
+        currentScript.crossOrigin = "anonymous";
+        try {
+          currentScript.setAttribute("data-paypal-client-id", clientId);
+        } catch {}
+        document.body.appendChild(currentScript);
       }
-    }, 12000);
 
-    script.addEventListener("load", onLoad);
-    script.addEventListener("error", onError);
+      currentScript.addEventListener("load", onLoad);
+      currentScript.addEventListener("error", onError);
+
+      // timeout fallback
+      timeoutHandle = setTimeout(() => {
+        if (!(window as any).paypal) {
+          console.error("PayPal SDK load timed out:", JSON.stringify({ src: currentScript?.src, clientId }));
+          setReady(false);
+          // attempt retry
+          if (attempts < maxAttempts) {
+            attempts += 1;
+            try { currentScript?.remove(); } catch {}
+            setTimeout(loadScript, 800);
+          }
+        }
+      }, 20000);
+    };
+
+    loadScript();
 
     return () => {
-      clearTimeout(timeout);
-      try {
-        script.removeEventListener("load", onLoad);
-      } catch {}
-      try {
-        script.removeEventListener("error", onError);
-      } catch {}
+      mounted = false;
+      cleanup();
     };
   }, [clientId, currency]);
 
