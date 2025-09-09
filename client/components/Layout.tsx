@@ -47,6 +47,19 @@ const nav = [
 function Header() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Prevent background scrolling while mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-background/80 border-b border-border">
       <div className="container grid h-14 md:h-16 grid-cols-2 md:grid-cols-[auto,1fr,auto] items-center gap-2 md:gap-6">
@@ -115,80 +128,88 @@ function Header() {
 
       {/* Mobile slide-over menu */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-6 text-foreground">
-          <div className="flex items-center justify-between">
-            <Link
-              to="/"
-              className="flex items-center gap-2"
-              onClick={() => setMobileOpen(false)}
-            >
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800"
-                alt="logo"
-                className="h-8 w-8 rounded-md object-cover"
-              />
-              <span className="font-display text-lg">Brainrot Market</span>
-            </Link>
-            <button
-              onClick={() => setMobileOpen(false)}
-              aria-label="Close menu"
-              className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <nav className="mt-6 flex flex-col gap-2 text-foreground">
-            {nav.map(({ to, label }) => (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-0"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setMobileOpen(false)}
+        >
+          {/* inner panel stops propagation so clicks inside don't close */}
+          <div className="h-full overflow-auto p-6 text-foreground" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
               <Link
-                to={to}
-                key={to}
+                to="/"
+                className="flex items-center gap-2"
                 onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground"
               >
-                {label}
+                <img
+                  src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800"
+                  alt="logo"
+                  className="h-8 w-8 rounded-md object-cover"
+                />
+                <span className="font-display text-lg">Brainrot Market</span>
               </Link>
-            ))}
-          </nav>
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
+                className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-          <div className="mt-6">
-            {!user ? (
-              <div className="flex flex-col gap-2">
+            <nav className="mt-6 flex flex-col gap-2 text-foreground">
+              {nav.map(({ to, label }) => (
                 <Link
-                  to="/login"
+                  to={to}
+                  key={to}
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground"
+                  className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground"
                 >
-                  Se connecter
+                  {label}
                 </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white"
-                >
-                  S'inscrire
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Link
-                  to="/profile"
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground"
-                >
-                  Profil
-                </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileOpen(false);
-                  }}
-                  className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground"
-                >
-                  Déconnexion
-                </button>
-              </div>
-            )}
+              ))}
+            </nav>
+
+            <div className="mt-6">
+              {!user ? (
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground"
+                  >
+                    Se connecter
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white"
+                  >
+                    S'inscrire
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground"
+                  >
+                    Profil
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileOpen(false);
+                    }}
+                    className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
