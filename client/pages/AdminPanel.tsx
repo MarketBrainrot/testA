@@ -963,11 +963,6 @@ export default function AdminPanel() {
                 value={announcement}
                 onChange={(e) => setAnnouncement(e.target.value)}
               />
-              <Input
-                placeholder="Message à afficher"
-                value={announcement}
-                onChange={(e) => setAnnouncement(e.target.value)}
-              />
               <Button
                 className="mt-2"
                 size="sm"
