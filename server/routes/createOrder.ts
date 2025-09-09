@@ -75,9 +75,22 @@ export const createOrder: RequestHandler = async (req, res) => {
     });
 
     if (!createRes.ok) {
-      const txt = await createRes.text();
-      console.error("PayPal create order failed:", createRes.status, txt);
-      return res.status(500).json({ error: "create_order_failed", details: txt });
+      const status = createRes.status;
+      // attempt to parse JSON body
+      let bodyTxt = await createRes.text();
+      try {
+        const parsed = JSON.parse(bodyTxt);
+        // If PayPal returns unprocessable entity with payee restriction, surface that clearly
+        if (status === 422 && parsed?.details?.some((d: any) => d.issue === "PAYEE_ACCOUNT_RESTRICTED")) {
+          console.error("PayPal create order failed - PAYEE_ACCOUNT_RESTRICTED:", parsed);
+          return res.status(422).json({ error: "payee_account_restricted", details: parsed });
+        }
+        console.error("PayPal create order failed:", status, parsed);
+        return res.status(500).json({ error: "create_order_failed", details: parsed });
+      } catch (e) {
+        console.error("PayPal create order failed (non-JSON):", status, bodyTxt);
+        return res.status(500).json({ error: "create_order_failed", details: bodyTxt });
+      }
     }
 
     const order = await createRes.json();
