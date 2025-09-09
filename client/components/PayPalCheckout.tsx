@@ -203,11 +203,27 @@ export default function PayPalCheckout({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, currency }),
       });
-      const data = await resp.json();
-      if (!resp.ok) {
-        throw new Error(data?.message || data?.error || "create_order_failed");
+      let data: any = null;
+      try {
+        // Try to parse JSON safely (use clone to avoid "body stream already read")
+        data = await resp.clone().json();
+      } catch (e) {
+        try {
+          const txt = await resp.clone().text();
+          try {
+            data = JSON.parse(txt);
+          } catch (_) {
+            data = { text: txt };
+          }
+        } catch (e2) {
+          data = null;
+        }
       }
-      const url = data.approveUrl || data.order?.links?.find((l: any) => l.rel === "approve")?.href;
+      if (!resp.ok) {
+        const message = data?.message || data?.error || data?.text || "create_order_failed";
+        throw new Error(message);
+      }
+      const url = data?.approveUrl || data?.order?.links?.find((l: any) => l.rel === "approve")?.href;
       if (!url) throw new Error("approve_url_missing");
       // open approval in a new tab/window
       window.open(url, "_blank", "noopener,noreferrer");
