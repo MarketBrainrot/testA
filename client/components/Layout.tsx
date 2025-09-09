@@ -532,6 +532,30 @@ export default function Layout() {
   }, [pathname]);
 
   useEffect(() => {
+    const titles: Record<string, string> = {
+      "/": "Brainrot Market — Accueil",
+      "/marketplace": "Marketplace — Brainrot Market",
+      "/shop": "RotCoins — Brainrot Market",
+      "/sell": "Vendre — Brainrot Market",
+      "/profile": "Profil — Brainrot Market",
+    };
+    const setTitle = () => {
+      const w = window.innerWidth;
+      const base = titles[pathname] || "Brainrot Market";
+      // Shorten title for small screens to avoid truncation in mobile tabs
+      if (w < 480) {
+        // If base is already short, use it; otherwise use compact label
+        document.title = base.length <= 20 ? base : "BR Market";
+      } else {
+        document.title = base;
+      }
+    };
+    setTitle();
+    window.addEventListener("resize", setTitle);
+    return () => window.removeEventListener("resize", setTitle);
+  }, [pathname]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && (e.key === "F1" || e.code === "F1")) {
         e.preventDefault();
