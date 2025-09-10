@@ -1049,6 +1049,32 @@ export default function AdminPanel() {
               >
                 Publier
               </Button>
+              {role === "founder" && (
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={async () => {
+                      if (!confirm("Effacer toutes les notifications pour tous les utilisateurs ?")) return;
+                      try {
+                        const usersSnap = await getDocs(query(collection(db, "users")));
+                        const batch = writeBatch(db);
+                        usersSnap.docs.forEach((d) => {
+                          const ref = doc(db, "users", d.id);
+                          batch.update(ref, { notifications: [] });
+                        });
+                        await batch.commit();
+                        toast({ title: "Notifications de tous les utilisateurs effacées" });
+                      } catch (e) {
+                        console.error("admin: clear all notifications failed", e);
+                        toast({ title: "Erreur", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    Effacer notifications (tous utilisateurs)
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <div className="text-sm font-semibold">
