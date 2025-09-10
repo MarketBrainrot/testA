@@ -120,12 +120,32 @@ export const createOrder: RequestHandler = async (req, res) => {
         {
           amount: {
             currency_code: currency,
-            value: Number(amount).toFixed(2),
+            value: amountStr,
           },
         },
       ],
     };
     if (custom_id) orderBody.purchase_units[0].custom_id = String(custom_id);
+    if (Array.isArray(items) && items.length > 0) {
+      // attach items in PayPal format where possible and provide breakdown
+      const ppItems: any[] = items.map((it: any) => {
+        const qty = Number(it.quantity ?? 1);
+        const unitVal = it.unit_amount?.value ?? it.price ?? it.unit_price ?? 0;
+        return {
+          name: it.name || it.description || "Item",
+          unit_amount: { currency_code: currency, value: Number(unitVal).toFixed(2) },
+          quantity: String(qty),
+        };
+      });
+      const itemsTotal = ppItems.reduce(
+        (acc, it) => acc + Number(it.unit_amount.value) * Number(it.quantity),
+        0,
+      );
+      orderBody.purchase_units[0].items = ppItems;
+      orderBody.purchase_units[0].amount.breakdown = {
+        item_total: { currency_code: currency, value: Number(itemsTotal).toFixed(2) },
+      };
+    }
     if (return_url || cancel_url) {
       orderBody.application_context = {
         return_url: return_url || undefined,
