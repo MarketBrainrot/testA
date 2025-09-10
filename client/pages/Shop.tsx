@@ -34,6 +34,13 @@ export default function Shop() {
   }, []);
 
   useEffect(() => {
+    // Auto-open pack if ?pack=... provided
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const initialPack = params.get("pack");
+      if (initialPack) setOpen(initialPack);
+    } catch {}
+
     const params = new URLSearchParams(window.location.search);
     const success = params.get("success");
     const sid = params.get("sid");
