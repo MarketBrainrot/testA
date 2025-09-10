@@ -45,8 +45,13 @@ export default function Shop() {
       try {
         setProcessing(true);
         const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`);
-        const cloneVerify = verify.clone();
-        const vt = await cloneVerify.text();
+        let vt: string;
+        try {
+          vt = await verify.clone().text();
+        } catch (e) {
+          // clone failed, read the original response once
+          vt = await verify.text();
+        }
         let data: any = null;
         try {
           data = vt ? JSON.parse(vt) : {};
