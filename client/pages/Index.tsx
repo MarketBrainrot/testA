@@ -225,6 +225,7 @@ export default function Index() {
             return (
               <CreditPack
                 key={p.id}
+                id={p.id}
                 name={p.name}
                 amount={p.coins}
                 bonus={`+${p.bonus}%`}
@@ -287,6 +288,7 @@ export default function Index() {
 }
 
 function CreditPack({
+  id,
   name,
   amount,
   bonus,
@@ -294,6 +296,7 @@ function CreditPack({
   originalPrice,
   promo,
 }: {
+  id?: string;
   name: string;
   amount: number;
   bonus: string;
@@ -336,8 +339,8 @@ function CreditPack({
             <span className="text-xl font-extrabold">{price}</span>
           )}
         </div>
-        <Button size="sm" variant="secondary">
-          Acheter
+        <Button asChild size="sm" variant="secondary">
+          <Link to={`/shop${id ? `?pack=${encodeURIComponent(id)}` : ""}`}>Acheter</Link>
         </Button>
       </div>
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
