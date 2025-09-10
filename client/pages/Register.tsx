@@ -25,6 +25,7 @@ export default function Register() {
     defaultValues: { username: "", password: "" },
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   import { useNavigate } from "react-router-dom";
 
