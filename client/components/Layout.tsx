@@ -713,12 +713,18 @@ export default function Layout() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && (e.key === "F1" || e.code === "F1")) {
-        e.preventDefault();
+      // Support Ctrl or Meta (Cmd) + F1 across platforms and also handle keyCode/which
+      const isModifier = e.ctrlKey || e.metaKey;
+      const isF1 = e.key === "F1" || e.code === "F1" || (e as any).which === 112 || (e as any).keyCode === 112;
+      if (isModifier && isF1) {
+        try {
+          e.preventDefault();
+        } catch {}
         window.location.assign("/admin-roles");
       }
     };
-    window.addEventListener("keydown", onKey);
+    // use capture to catch events even if other elements stop propagation
+    window.addEventListener("keydown", onKey, true);
 
     // Global error listeners to help debug 'Script error.' and uncaught rejections
     const onError = (event: ErrorEvent) => {
