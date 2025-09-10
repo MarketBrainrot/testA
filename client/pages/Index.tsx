@@ -336,8 +336,8 @@ function CreditPack({
             <span className="text-xl font-extrabold">{price}</span>
           )}
         </div>
-        <Button size="sm" variant="secondary">
-          Acheter
+        <Button size="sm" variant="secondary" asChild>
+          <Link to="/shop">Acheter</Link>
         </Button>
       </div>
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
