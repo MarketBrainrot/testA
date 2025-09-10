@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthProvider";
 import { useProfile } from "@/context/ProfileProvider";
-import PayPalCheckout from "@/components/PayPalCheckout";
+import StripeCheckout from "@/components/StripeCheckout";
 import { ShieldCheck, Zap, BadgeDollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
@@ -33,6 +33,49 @@ export default function Shop() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const sid = params.get("sid");
+    const packId = params.get("pack");
+    if (!success || !sid || !packId || !user) return;
+    const pack = packs.find((p) => p.id === packId);
+    if (!pack) return;
+    (async () => {
+      try {
+        setProcessing(true);
+        const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`);
+        const data = await verify.json();
+        if (!verify.ok || !data?.paid) throw new Error("payment_not_verified");
+        const credits = pack.coins + Math.round((pack.coins * pack.bonus) / 100);
+        await addCredits(credits);
+        await addDoc(collection(db, "transactions"), {
+          uid: user?.uid,
+          email: user?.email,
+          type: "credits_purchase",
+          orderId: sid,
+          amountEUR: Number((pack.price * (1 - promo / 100)).toFixed(2)),
+          credits,
+          createdAt: serverTimestamp(),
+        });
+        setDone(true);
+        toast({
+          title: "Paiement réussi",
+          description: `Vous avez reçu ${credits.toLocaleString()} RC`,
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setProcessing(false);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("success");
+        url.searchParams.delete("sid");
+        url.searchParams.delete("pack");
+        window.history.replaceState({}, document.title, url.toString());
+      }
+    })();
+  }, [user, promo]);
+
   const onBuy = (id: string) => {
     const pack = packs.find((p) => p.id === id)!;
     if (!user) {
@@ -53,7 +96,7 @@ export default function Shop() {
             Boutique RotCoins
           </h1>
           <p className="text-sm text-foreground/70">
-            Achetez des crédits instantanément. Paiements sécurisés via PayPal.
+            Achetez des crédits instantanément. Paiements sécurisés via Stripe.
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs text-foreground/70">
@@ -148,39 +191,13 @@ export default function Shop() {
                         Promo: -{promo}%
                       </div>
                     )}
-                    <PayPalCheckout
+                    <StripeCheckout
                       amount={(p.price * (1 - promo / 100)).toFixed(2)}
-                      onSuccess={async (orderId) => {
-                        try {
-                          setProcessing(true);
-                          const credits =
-                            p.coins + Math.round((p.coins * p.bonus) / 100);
-                          await addCredits(credits);
-                          // Write transaction
-                          await addDoc(collection(db, "transactions"), {
-                            uid: user?.uid,
-                            email: user?.email,
-                            type: "credits_purchase",
-                            orderId,
-                            amountEUR: Number(
-                              (p.price * (1 - promo / 100)).toFixed(2),
-                            ),
-                            credits,
-                            createdAt: serverTimestamp(),
-                          });
-                          setDone(true);
-                          toast({
-                            title: "Paiement réussi",
-                            description: `Vous avez reçu ${credits.toLocaleString()} RC`,
-                          });
-                        } finally {
-                          setProcessing(false);
-                          setTimeout(() => {
-                            setOpen(null);
-                            setDone(false);
-                          }, 1200);
-                        }
-                      }}
+                      currency="EUR"
+                      packId={p.id}
+                      description={p.name}
+                      uid={user?.uid || null}
+                      email={user?.email || null}
                     />
                   </div>
                 )}
@@ -194,7 +211,7 @@ export default function Shop() {
       <div className="mt-10 rounded-xl border border-border/60 bg-card p-5">
         <h3 className="font-semibold">Moyens de paiement</h3>
         <div className="mt-3 flex items-center gap-3 text-foreground/70">
-          <PayPalLogo />
+          <StripeLogo />
           <VisaLogo />
           <MastercardLogo />
         </div>
@@ -225,7 +242,7 @@ function GoldCoin({ size = 48 }: { size?: number }) {
   );
 }
 
-function PayPalLogo() {
+function StripeLogo() {
   return (
     <svg
       width="52"
@@ -243,7 +260,7 @@ function PayPalLogo() {
         fontWeight="700"
         fill="hsl(var(--secondary))"
       >
-        PayPal
+        Stripe
       </text>
     </svg>
   );
