@@ -44,19 +44,15 @@ export default function Shop() {
     (async () => {
       try {
         setProcessing(true);
-        const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`);
-        let vt: string;
-        try {
-          vt = await verify.clone().text();
-        } catch (e) {
-          // clone failed, read the original response once
-          vt = await verify.text();
-        }
+        const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`, {
+          headers: { Accept: "application/json" },
+        });
         let data: any = null;
         try {
-          data = vt ? JSON.parse(vt) : {};
+          data = await verify.json();
         } catch (e) {
-          data = { text: vt };
+          const txt = await verify.text().catch(() => "");
+          throw new Error(txt || "invalid_json_response");
         }
         if (!verify.ok || !data?.paid) throw new Error("payment_not_verified");
         const credits = pack.coins + Math.round((pack.coins * pack.bonus) / 100);
