@@ -288,6 +288,7 @@ export default function Index() {
 }
 
 function CreditPack({
+  id,
   name,
   amount,
   bonus,
@@ -295,6 +296,7 @@ function CreditPack({
   originalPrice,
   promo,
 }: {
+  id: string;
   name: string;
   amount: number;
   bonus: string;
@@ -303,6 +305,14 @@ function CreditPack({
   promo?: number;
 }) {
   const hasPromo = Boolean(promo && promo > 0 && originalPrice);
+  const imageMap: Record<string, string> = {
+    starter: "/icons/crown.svg",
+    gamer: "/icons/avatar.svg",
+    elite: "/icons/shield.svg",
+    pro: "/icons/crown.svg",
+    legend: "/placeholder.svg",
+  };
+  const imgSrc = imageMap[id] || "/placeholder.svg";
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -322,7 +332,7 @@ function CreditPack({
             Bonus {bonus}
           </div>
         </div>
-        <GoldCoin />
+        <img src={imgSrc} alt={`${name} logo`} className="h-12 w-12 rounded-full object-cover" />
       </div>
       <div className="mt-4 flex items-center justify-between">
         <div className="text-foreground/80">
