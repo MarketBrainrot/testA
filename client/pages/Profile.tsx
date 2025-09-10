@@ -11,7 +11,9 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
-  const [avatarUrl, setAvatarUrl] = useState<string>(user?.photoURL ?? DEFAULT_AVATAR_IMG);
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    user?.photoURL ?? DEFAULT_AVATAR_IMG,
+  );
   const [saving, setSaving] = useState(false);
 
   const save = async () => {

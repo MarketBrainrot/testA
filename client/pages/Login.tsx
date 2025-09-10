@@ -47,18 +47,31 @@ export default function Login() {
     } catch (err: any) {
       console.error("login failed", err);
       const code = String(err?.code || err?.message || err || "");
-      if (code.includes("network") || code.includes("auth/network-request-failed")) {
+      if (
+        code.includes("network") ||
+        code.includes("auth/network-request-failed")
+      ) {
         toast({
           title: "Erreur réseau",
           description: "Connexion impossible — vérifiez votre réseau",
           variant: "destructive",
         });
-      } else if (code.includes("auth/wrong-password") || code.includes("wrong-password")) {
+      } else if (
+        code.includes("auth/wrong-password") ||
+        code.includes("wrong-password")
+      ) {
         toast({ title: "Mot de passe incorrect", variant: "destructive" });
-      } else if (code.includes("auth/user-not-found") || code.includes("user-not-found")) {
+      } else if (
+        code.includes("auth/user-not-found") ||
+        code.includes("user-not-found")
+      ) {
         toast({ title: "Utilisateur introuvable", variant: "destructive" });
       } else {
-        toast({ title: "Erreur de connexion", description: String(err?.message || err), variant: "destructive" });
+        toast({
+          title: "Erreur de connexion",
+          description: String(err?.message || err),
+          variant: "destructive",
+        });
       }
     }
   }

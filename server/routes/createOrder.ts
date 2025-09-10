@@ -53,12 +53,19 @@ export const createOrder: RequestHandler = async (req, res) => {
     // validate amount format and value
     const amountNum = Number(amount);
     if (!isFinite(amountNum) || amountNum <= 0)
-      return res.status(400).json({ error: "invalid_amount", details: { amount } });
+      return res
+        .status(400)
+        .json({ error: "invalid_amount", details: { amount } });
 
     // ensure two-decimal string formatting for PayPal
     const amountStr = Number(amountNum).toFixed(2);
     if (!/^\d+(\.\d{2})?$/.test(amountStr))
-      return res.status(400).json({ error: "invalid_amount_format", details: { amount: amountStr } });
+      return res
+        .status(400)
+        .json({
+          error: "invalid_amount_format",
+          details: { amount: amountStr },
+        });
 
     // If items provided, validate that their total matches amount
     if (Array.isArray(items) && items.length > 0) {
@@ -105,12 +112,10 @@ export const createOrder: RequestHandler = async (req, res) => {
           "Both live and sandbox token requests failed:",
           e2?.message || e2,
         );
-        return res
-          .status(502)
-          .json({
-            error: "paypal_auth_failed",
-            message: String(e2?.message || e2),
-          });
+        return res.status(502).json({
+          error: "paypal_auth_failed",
+          message: String(e2?.message || e2),
+        });
       }
     }
 
@@ -133,7 +138,10 @@ export const createOrder: RequestHandler = async (req, res) => {
         const unitVal = it.unit_amount?.value ?? it.price ?? it.unit_price ?? 0;
         return {
           name: it.name || it.description || "Item",
-          unit_amount: { currency_code: currency, value: Number(unitVal).toFixed(2) },
+          unit_amount: {
+            currency_code: currency,
+            value: Number(unitVal).toFixed(2),
+          },
           quantity: String(qty),
         };
       });
@@ -143,7 +151,10 @@ export const createOrder: RequestHandler = async (req, res) => {
       );
       orderBody.purchase_units[0].items = ppItems;
       orderBody.purchase_units[0].amount.breakdown = {
-        item_total: { currency_code: currency, value: Number(itemsTotal).toFixed(2) },
+        item_total: {
+          currency_code: currency,
+          value: Number(itemsTotal).toFixed(2),
+        },
       };
     }
     if (return_url || cancel_url) {
@@ -179,22 +190,19 @@ export const createOrder: RequestHandler = async (req, res) => {
             "PayPal create order failed - PAYEE_ACCOUNT_RESTRICTED:",
             parsed,
           );
-          return res
-            .status(422)
-            .json({
-              error: "payee_account_restricted",
-              debug_id: parsed?.debug_id || parsed?.details?.[0]?.debug_id || null,
-              details: parsed,
-            });
-        }
-        console.error("PayPal create order failed:", status, parsed);
-        return res
-          .status(500)
-          .json({
-            error: "create_order_failed",
-            debug_id: parsed?.debug_id || null,
+          return res.status(422).json({
+            error: "payee_account_restricted",
+            debug_id:
+              parsed?.debug_id || parsed?.details?.[0]?.debug_id || null,
             details: parsed,
           });
+        }
+        console.error("PayPal create order failed:", status, parsed);
+        return res.status(500).json({
+          error: "create_order_failed",
+          debug_id: parsed?.debug_id || null,
+          details: parsed,
+        });
       } catch (e) {
         console.error(
           "PayPal create order failed (non-JSON):",

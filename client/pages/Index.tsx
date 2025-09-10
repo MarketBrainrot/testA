@@ -150,7 +150,8 @@ export default function Index() {
             </div>
             <p className="mt-4 text-foreground/80 max-w-prose">
               Achetez et vendez des Brain Rots, gagnez des{" "}
-              <strong>RotCoins</strong>. Paiements PayPal, vendeurs certifiés. , Et Revente 
+              <strong>RotCoins</strong>. Paiements PayPal, vendeurs certifiés. ,
+              Et Revente
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild variant="outline">
@@ -167,7 +168,10 @@ export default function Index() {
                 variant="ghost"
                 className="border border-border/60"
               >
-                <Link to="/marketplace" className="inline-flex items-center gap-2">
+                <Link
+                  to="/marketplace"
+                  className="inline-flex items-center gap-2"
+                >
                   <Trophy className="h-4 w-4" />
                   Start Selling
                 </Link>
@@ -333,7 +337,11 @@ function CreditPack({
             Bonus {bonus}
           </div>
         </div>
-        <img src={imgSrc} alt={`${name} logo`} className="h-12 w-12 rounded-full object-cover" />
+        <img
+          src={imgSrc}
+          alt={`${name} logo`}
+          className="h-12 w-12 rounded-full object-cover"
+        />
       </div>
       <div className="mt-4 flex items-center justify-between">
         <div className="text-foreground/80">

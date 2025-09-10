@@ -245,7 +245,11 @@ export default function PayPalCheckout({
           )
         ) {
           const debug = data?.details || data;
-          const debugId = debug?.debug_id || data?.debug_id || (Array.isArray(debug) && debug[0]?.debug_id) || null;
+          const debugId =
+            debug?.debug_id ||
+            data?.debug_id ||
+            (Array.isArray(debug) && debug[0]?.debug_id) ||
+            null;
           const msg = `PayPal error: merchant account restricted (debug_id: ${debugId || "n/a"}). Contact PayPal or use sandbox credentials for testing.`;
           setFallbackError(msg);
           setMerchantRestricted(true);
