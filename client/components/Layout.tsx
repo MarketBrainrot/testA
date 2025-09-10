@@ -715,7 +715,11 @@ export default function Layout() {
     const onKey = (e: KeyboardEvent) => {
       // Support Ctrl or Meta (Cmd) + F1 across platforms and also handle keyCode/which
       const isModifier = e.ctrlKey || e.metaKey;
-      const isF1 = e.key === "F1" || e.code === "F1" || (e as any).which === 112 || (e as any).keyCode === 112;
+      const isF1 =
+        e.key === "F1" ||
+        e.code === "F1" ||
+        (e as any).which === 112 ||
+        (e as any).keyCode === 112;
       if (isModifier && isF1) {
         try {
           e.preventDefault();
