@@ -39,9 +39,15 @@ export default function StripeCheckout({
         }),
       });
 
-      // Read JSON once
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || data?.message || "request_failed");
+      // Safely read body as text then try parse JSON to avoid 'body stream already read'
+      const bodyText = await resp.text();
+      let data: any = null;
+      try {
+        data = bodyText ? JSON.parse(bodyText) : {};
+      } catch (e) {
+        data = { text: bodyText };
+      }
+      if (!resp.ok) throw new Error(data?.error || data?.message || data?.text || "request_failed");
 
       const sessionId = data?.id as string | undefined;
       if (!sessionId) throw new Error("no_session_id_returned");
