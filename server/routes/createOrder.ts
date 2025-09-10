@@ -35,7 +35,9 @@ export const createOrder: RequestHandler = async (req, res) => {
       return_url,
       cancel_url,
       custom_id,
+      items,
     } = req.body as any;
+
     const clientId =
       process.env.VITE_PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID;
     const secret =
@@ -45,7 +47,45 @@ export const createOrder: RequestHandler = async (req, res) => {
     if (!clientId || !secret)
       return res.status(400).json({ error: "paypal_not_configured" });
 
-    if (!amount) return res.status(400).json({ error: "missing_amount" });
+    if (amount === undefined || amount === null)
+      return res.status(400).json({ error: "missing_amount" });
+
+    // validate amount format and value
+    const amountNum = Number(amount);
+    if (!isFinite(amountNum) || amountNum <= 0)
+      return res.status(400).json({ error: "invalid_amount", details: { amount } });
+
+    // ensure two-decimal string formatting for PayPal
+    const amountStr = Number(amountNum).toFixed(2);
+    if (!/^\d+(\.\d{2})?$/.test(amountStr))
+      return res.status(400).json({ error: "invalid_amount_format", details: { amount: amountStr } });
+
+    // If items provided, validate that their total matches amount
+    if (Array.isArray(items) && items.length > 0) {
+      // items may come in two shapes: {unit_amount:{currency_code,value}, quantity}
+      // or {price, quantity}
+      let computed = 0;
+      for (const it of items) {
+        let price = null;
+        let qty = Number(it.quantity ?? 1) || 0;
+        if (it.unit_amount && it.unit_amount.value)
+          price = Number(it.unit_amount.value);
+        else if (it.price) price = Number(it.price);
+        if (price === null || !isFinite(price)) {
+          return res.status(400).json({ error: "invalid_item", details: it });
+        }
+        computed += price * qty;
+      }
+      // compare with small epsilon
+      const diff = Math.abs(computed - amountNum);
+      if (diff > 0.01) {
+        return res.status(400).json({
+          error: "amount_mismatch",
+          message: "Sum of items does not match total amount",
+          details: { itemsTotal: computed.toFixed(2), amount: amountStr },
+        });
+      }
+    }
 
     // Try live first, then sandbox if authentication fails
     let accessToken: string | null = null;
