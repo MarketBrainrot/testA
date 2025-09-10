@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const schema = z.object({
   username: z.string().min(3, "Minimum 3 caractères"),
@@ -24,6 +25,7 @@ export default function Register() {
     defaultValues: { username: "", password: "" },
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   async function onSubmit(values: z.infer<typeof schema>) {
     const { createUserWithEmailAndPassword, updateProfile } = await import(
@@ -121,6 +123,7 @@ export default function Register() {
       }
 
       toast({ title: `Bienvenue ${uname} 🎉` });
+      navigate("/", { replace: true });
     } catch (err: any) {
       console.error("createUser failed", err);
       const code = err?.code || err?.message || "";

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const schema = z.object({
   username: z.string().min(3, "Minimum 3 caractères"),
@@ -24,6 +25,7 @@ export default function Login() {
     defaultValues: { username: "", password: "" },
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   async function onSubmit(values: z.infer<typeof schema>) {
     const { signInWithEmailAndPassword } = await import("firebase/auth");
@@ -40,6 +42,7 @@ export default function Login() {
     const email = usernameToEmail(values.username);
     await signInWithEmailAndPassword(auth, email, values.password);
     toast({ title: `Connexion réussie`, description: values.username });
+    navigate("/", { replace: true });
   }
 
   return (
