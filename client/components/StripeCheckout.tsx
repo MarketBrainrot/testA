@@ -39,8 +39,9 @@ export default function StripeCheckout({
         }),
       });
 
-      // Safely read body as text then try parse JSON to avoid 'body stream already read'
-      const bodyText = await resp.text();
+      // Clone response first to avoid "body stream already read" if something else accessed it
+      const clone = resp.clone();
+      const bodyText = await clone.text();
       let data: any = null;
       try {
         data = bodyText ? JSON.parse(bodyText) : {};
