@@ -27,7 +27,6 @@ export default function Register() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  import { useNavigate } from "react-router-dom";
 
   async function onSubmit(values: z.infer<typeof schema>) {
     const { createUserWithEmailAndPassword, updateProfile } = await import(
