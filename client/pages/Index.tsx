@@ -27,6 +27,7 @@ import {
   query,
 } from "firebase/firestore";
 import { packs } from "@/lib/packs";
+import crownImg from "../../public/icons/crown.svg";
 
 export default function Index() {
   const { user, loading } = useAuth();
