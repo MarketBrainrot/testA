@@ -45,7 +45,13 @@ export default function Shop() {
       try {
         setProcessing(true);
         const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`);
-        const data = await verify.json();
+        const vt = await verify.text();
+        let data: any = null;
+        try {
+          data = vt ? JSON.parse(vt) : {};
+        } catch (e) {
+          data = { text: vt };
+        }
         if (!verify.ok || !data?.paid) throw new Error("payment_not_verified");
         const credits = pack.coins + Math.round((pack.coins * pack.bonus) / 100);
         await addCredits(credits);
