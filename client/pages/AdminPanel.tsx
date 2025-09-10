@@ -526,6 +526,69 @@ export default function AdminPanel() {
               </div>
             )}
           </div>
+
+          {/* Notifications management for selected user */}
+          {userInfo && (
+            <div className="mt-3">
+              <h4 className="text-sm font-semibold">Notifications utilisateur</h4>
+              <div className="mt-2 space-y-2">
+                {(Array.isArray(userInfo.notifications) && userInfo.notifications.length > 0) ? (
+                  userInfo.notifications.slice().reverse().map((n: any, i: number) => (
+                    <div key={i} className="rounded-md border border-border/60 bg-card p-2 flex items-start justify-between gap-3">
+                      <div className="text-sm">
+                        <div className="font-medium">{n.title || (n.type === 'role' ? `Rôle: ${n.role}` : (n.type === 'warn' ? 'Avertissement' : n.type || 'Notification'))}</div>
+                        <div className="text-xs text-foreground/70 mt-1">{n.text || JSON.stringify(n).slice(0, 150)}</div>
+                        <div className="text-xs text-foreground/60 mt-1">{n.createdAt? (n.createdAt.toDate ? n.createdAt.toDate().toLocaleString() : String(n.createdAt)) : ''}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <button
+                          className="text-xs text-destructive"
+                          onClick={async () => {
+                            try {
+                              const ref = doc(db, "users", userInfo.id);
+                              const cur = Array.isArray(userInfo.notifications) ? userInfo.notifications.slice() : [];
+                              // find the item to remove by index from original array (reverse order mapping)
+                              const realIndex = cur.length - 1 - i;
+                              cur.splice(realIndex, 1);
+                              await updateDoc(ref, { notifications: cur });
+                              toast({ title: "Notification supprimée" });
+                            } catch (e) {
+                              console.error("admin: remove notification failed", e);
+                              toast({ title: "Erreur", variant: "destructive" });
+                            }
+                          }}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-foreground/70">Aucune notification</div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const ref = doc(db, "users", userInfo.id);
+                        await updateDoc(ref, { notifications: [] });
+                        toast({ title: "Notifications effacées" });
+                      } catch (e) {
+                        console.error("admin: clear notifications failed", e);
+                        toast({ title: "Erreur", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    Effacer toutes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {userId && (
             <div className="mt-4">
               {role === "moderator" || role === "founder" ? (
