@@ -3,10 +3,16 @@ import Stripe from "stripe";
 
 function getStripe(): Stripe {
   // Prefer non-VITE env var for server secret key
-  const secret = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET || process.env.VITE_STRIPE_SECRET_KEY;
+  const secret =
+    process.env.STRIPE_SECRET_KEY ||
+    process.env.STRIPE_SECRET ||
+    process.env.VITE_STRIPE_SECRET_KEY;
   if (!secret) throw new Error("stripe_not_configured: missing secret key");
   // basic sanity: secret key should start with sk_ (test or live)
-  if (!/^sk_/.test(secret)) throw new Error("stripe_not_configured: invalid secret key, expected a secret (sk_...)");
+  if (!/^sk_/.test(secret))
+    throw new Error(
+      "stripe_not_configured: invalid secret key, expected a secret (sk_...)",
+    );
   return new Stripe(secret, { apiVersion: "2024-06-20" });
 }
 
@@ -65,7 +71,9 @@ export const createCheckoutSession: RequestHandler = async (req, res) => {
     // eslint-disable-next-line no-console
     console.error("stripe:createCheckoutSession", e?.message || e);
     if (e?.message && String(e.message).includes("stripe_not_configured"))
-      return res.status(400).json({ error: "stripe_not_configured", message: String(e.message) });
+      return res
+        .status(400)
+        .json({ error: "stripe_not_configured", message: String(e.message) });
     res.status(500).json({ error: "server_error", message: e?.message });
   }
 };
@@ -77,12 +85,22 @@ export const verifySession: RequestHandler = async (req, res) => {
     if (!id) return res.status(400).json({ error: "missing_id" });
     const session = await stripe.checkout.sessions.retrieve(id);
     const paid = session.payment_status === "paid";
-    res.json({ ok: true, paid, status: session.status, payment_status: session.payment_status, amount_total: session.amount_total, currency: session.currency, metadata: session.metadata || {} });
+    res.json({
+      ok: true,
+      paid,
+      status: session.status,
+      payment_status: session.payment_status,
+      amount_total: session.amount_total,
+      currency: session.currency,
+      metadata: session.metadata || {},
+    });
   } catch (e: any) {
     // eslint-disable-next-line no-console
     console.error("stripe:verifySession", e?.message || e);
     if (e?.message && String(e.message).includes("stripe_not_configured"))
-      return res.status(400).json({ error: "stripe_not_configured", message: String(e.message) });
+      return res
+        .status(400)
+        .json({ error: "stripe_not_configured", message: String(e.message) });
     res.status(500).json({ error: "server_error", message: e?.message });
   }
 };

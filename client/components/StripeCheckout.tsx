@@ -26,7 +26,10 @@ export default function StripeCheckout({
       const origin = window.location.origin;
       const resp = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           amount,
           currency,
@@ -46,16 +49,21 @@ export default function StripeCheckout({
       } catch (e) {
         // If parsing JSON fails, provide helpful error
         const txt = await resp.text().catch(() => "");
-        throw new Error(data?.error || data?.message || txt || "invalid_json_response");
+        throw new Error(
+          data?.error || data?.message || txt || "invalid_json_response",
+        );
       }
 
-      if (!resp.ok) throw new Error(data?.error || data?.message || "request_failed");
+      if (!resp.ok)
+        throw new Error(data?.error || data?.message || "request_failed");
 
       const sessionId = data?.id as string | undefined;
       if (!sessionId) throw new Error("no_session_id_returned");
 
       // Load Stripe.js and redirect using the public key
-      const key = (import.meta.env.VITE_STRIPE_PUBLIC_KEY as string | undefined) || (window as any).__STRIPE_PUBLIC_KEY;
+      const key =
+        (import.meta.env.VITE_STRIPE_PUBLIC_KEY as string | undefined) ||
+        (window as any).__STRIPE_PUBLIC_KEY;
       if (!key) throw new Error("stripe_public_key_not_configured");
 
       // Ensure Stripe.js loaded
@@ -71,8 +79,11 @@ export default function StripeCheckout({
       }
 
       const stripe = (window as any).Stripe(key);
-      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
-      if (stripeError) throw new Error(stripeError.message || "stripe_redirect_failed");
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId,
+      });
+      if (stripeError)
+        throw new Error(stripeError.message || "stripe_redirect_failed");
     } catch (e: any) {
       setError(String(e?.message || e));
     } finally {
@@ -82,10 +93,17 @@ export default function StripeCheckout({
 
   return (
     <div className="flex items-center gap-2">
-      <Button onClick={createSession} disabled={loading} size="sm" variant="secondary">
+      <Button
+        onClick={createSession}
+        disabled={loading}
+        size="sm"
+        variant="secondary"
+      >
         {loading ? "Redirection…" : "Payer avec Stripe"}
       </Button>
-      {error && <span className="text-xs text-destructive">Erreur: {error}</span>}
+      {error && (
+        <span className="text-xs text-destructive">Erreur: {error}</span>
+      )}
     </div>
   );
 }

@@ -11,7 +11,9 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
-  const [avatarUrl, setAvatarUrl] = useState<string>("https://media.discordapp.net/attachments/1414653070171701309/1415119993737056297/assets_ec69bd5deeba4d6a81033567db96cbc0_a179a2c715a64edaafe6df770c43ddf5.webp?ex=68c20cb2&is=68c0bb32&hm=3c194928582aa6a27f988c35326997461abf380a9116ab32ae613a52c8b61002");
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    "https://media.discordapp.net/attachments/1414653070171701309/1415119993737056297/assets_ec69bd5deeba4d6a81033567db96cbc0_a179a2c715a64edaafe6df770c43ddf5.webp?ex=68c20cb2&is=68c0bb32&hm=3c194928582aa6a27f988c35326997461abf380a9116ab32ae613a52c8b61002",
+  );
   const [saving, setSaving] = useState(false);
 
   const save = async () => {

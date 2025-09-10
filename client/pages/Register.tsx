@@ -27,7 +27,6 @@ export default function Register() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-
   async function onSubmit(values: z.infer<typeof schema>) {
     const { createUserWithEmailAndPassword, updateProfile } = await import(
       "firebase/auth"

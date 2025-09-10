@@ -44,7 +44,9 @@ export async function createServer() {
   }
 
   try {
-    const { createCheckoutSession, verifySession } = await import("./routes/stripe");
+    const { createCheckoutSession, verifySession } = await import(
+      "./routes/stripe"
+    );
     app.post("/api/stripe/create-checkout-session", createCheckoutSession);
     app.get("/api/stripe/verify-session", verifySession);
   } catch (e) {

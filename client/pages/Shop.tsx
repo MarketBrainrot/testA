@@ -51,9 +51,12 @@ export default function Shop() {
     (async () => {
       try {
         setProcessing(true);
-        const verify = await fetch(`/api/stripe/verify-session?id=${encodeURIComponent(sid)}`, {
-          headers: { Accept: "application/json" },
-        });
+        const verify = await fetch(
+          `/api/stripe/verify-session?id=${encodeURIComponent(sid)}`,
+          {
+            headers: { Accept: "application/json" },
+          },
+        );
         let data: any = null;
         try {
           data = await verify.json();
@@ -62,7 +65,8 @@ export default function Shop() {
           throw new Error(txt || "invalid_json_response");
         }
         if (!verify.ok || !data?.paid) throw new Error("payment_not_verified");
-        const credits = pack.coins + Math.round((pack.coins * pack.bonus) / 100);
+        const credits =
+          pack.coins + Math.round((pack.coins * pack.bonus) / 100);
         await addCredits(credits);
         await addDoc(collection(db, "transactions"), {
           uid: user?.uid,
