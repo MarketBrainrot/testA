@@ -123,6 +123,14 @@ export default function Register() {
       }
 
       toast({ title: `Bienvenue ${uname} 🎉` });
+      // redirect to homepage after successful registration
+      try {
+        const { useNavigate } = await import("react-router-dom");
+      } catch {}
+      // navigate cannot be used here directly due to async import; use window.location as fallback
+      try {
+        (window as any).location = "/";
+      } catch {}
     } catch (err: any) {
       console.error("createUser failed", err);
       const code = err?.code || err?.message || "";
