@@ -13,7 +13,10 @@ export default function Sell() {
           <Link to="/profile" className="text-sm text-primary hover:underline">
             Aller au profil
           </Link>
-          <Link to="/marketplace" className="text-sm text-foreground/80 hover:underline">
+          <Link
+            to="/marketplace"
+            className="text-sm text-foreground/80 hover:underline"
+          >
             Voir le marketplace
           </Link>
         </div>

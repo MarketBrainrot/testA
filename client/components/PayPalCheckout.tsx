@@ -20,7 +20,8 @@ export default function PayPalCheckout({
   const [fallbackLoading, setFallbackLoading] = useState(false);
   const [fallbackError, setFallbackError] = useState<string | null>(null);
   // Public PayPal client id (fallback) — DO NOT use the secret here
-  const FALLBACK_PAYPAL_CLIENT_ID = "AXLbZ7s1bZ0GJMLY78N-DAOC-7O2qITENp1m1bbgKjWDSD-iPdmsL_ndV1l5lFecte8RyYEqlyd4rQ5Z";
+  const FALLBACK_PAYPAL_CLIENT_ID =
+    "AXLbZ7s1bZ0GJMLY78N-DAOC-7O2qITENp1m1bbgKjWDSD-iPdmsL_ndV1l5lFecte8RyYEqlyd4rQ5Z";
   const clientId =
     (import.meta.env.VITE_PAYPAL_CLIENT_ID as string | undefined) ||
     FALLBACK_PAYPAL_CLIENT_ID;
@@ -69,11 +70,14 @@ export default function PayPalCheckout({
 
     const onError = (ev: Event) => {
       if (!mounted) return;
-      console.error("PayPal script failed to load:", JSON.stringify({
-        src: currentScript?.src,
-        clientId,
-        error: (ev as any)?.message || ev,
-      }));
+      console.error(
+        "PayPal script failed to load:",
+        JSON.stringify({
+          src: currentScript?.src,
+          clientId,
+          error: (ev as any)?.message || ev,
+        }),
+      );
       setReady(false);
       cleanup();
       // retry logic
@@ -91,8 +95,13 @@ export default function PayPalCheckout({
     const loadScript = () => {
       const src = buildSrc(clientId);
       // if an existing script already present with same src, reuse
-      const existing = document.querySelector(`script[src^="https://www.paypal.com/sdk/js"]`) as HTMLScriptElement | null;
-      if (existing && existing.getAttribute("data-paypal-client-id") === clientId) {
+      const existing = document.querySelector(
+        `script[src^="https://www.paypal.com/sdk/js"]`,
+      ) as HTMLScriptElement | null;
+      if (
+        existing &&
+        existing.getAttribute("data-paypal-client-id") === clientId
+      ) {
         currentScript = existing;
         // if paypal already loaded
         if ((window as any).paypal) {
@@ -102,7 +111,9 @@ export default function PayPalCheckout({
       } else {
         // remove any old paypal script to avoid conflicts
         if (existing) {
-          try { existing.remove(); } catch {}
+          try {
+            existing.remove();
+          } catch {}
         }
         currentScript = document.createElement("script");
         currentScript.src = src;
@@ -120,12 +131,17 @@ export default function PayPalCheckout({
       // timeout fallback
       timeoutHandle = setTimeout(() => {
         if (!(window as any).paypal) {
-          console.error("PayPal SDK load timed out:", JSON.stringify({ src: currentScript?.src, clientId }));
+          console.error(
+            "PayPal SDK load timed out:",
+            JSON.stringify({ src: currentScript?.src, clientId }),
+          );
           setReady(false);
           // attempt retry
           if (attempts < maxAttempts) {
             attempts += 1;
-            try { currentScript?.remove(); } catch {}
+            try {
+              currentScript?.remove();
+            } catch {}
             setTimeout(loadScript, 800);
           }
         }
@@ -221,14 +237,24 @@ export default function PayPalCheckout({
       }
       if (!resp.ok) {
         // If server returned PayPal-specific error details, show actionable message
-        if (data?.error === "payee_account_restricted" || data?.details?.some?.((d: any) => d.issue === "PAYEE_ACCOUNT_RESTRICTED")) {
+        if (
+          data?.error === "payee_account_restricted" ||
+          data?.details?.some?.(
+            (d: any) => d.issue === "PAYEE_ACCOUNT_RESTRICTED",
+          )
+        ) {
           const debug = data?.details || data;
-          throw new Error(`PayPal error: merchant account restricted. Contact PayPal with debug_id: ${debug?.debug_id || debug?.debug_id || data?.debug_id || "n/a"}`);
+          throw new Error(
+            `PayPal error: merchant account restricted. Contact PayPal with debug_id: ${debug?.debug_id || debug?.debug_id || data?.debug_id || "n/a"}`,
+          );
         }
-        const message = data?.message || data?.error || data?.text || "create_order_failed";
+        const message =
+          data?.message || data?.error || data?.text || "create_order_failed";
         throw new Error(message);
       }
-      const url = data?.approveUrl || data?.order?.links?.find((l: any) => l.rel === "approve")?.href;
+      const url =
+        data?.approveUrl ||
+        data?.order?.links?.find((l: any) => l.rel === "approve")?.href;
       if (!url) throw new Error("approve_url_missing");
       // open approval in a new tab/window
       window.open(url, "_blank", "noopener,noreferrer");
@@ -247,7 +273,10 @@ export default function PayPalCheckout({
   return (
     <div>
       <div className="rounded-md border border-border/60 bg-card p-3 text-sm text-foreground/80">
-        <div>Le bouton PayPal n'a pas pu se charger. Vous pouvez ouvrir le paiement dans une nouvelle fenêtre.</div>
+        <div>
+          Le bouton PayPal n'a pas pu se charger. Vous pouvez ouvrir le paiement
+          dans une nouvelle fenêtre.
+        </div>
         <div className="mt-3 flex items-center gap-2">
           <button
             onClick={createOrderFallback}
@@ -256,7 +285,11 @@ export default function PayPalCheckout({
           >
             {fallbackLoading ? "Ouverture…" : "Payer via PayPal"}
           </button>
-          {fallbackError && <div className="text-sm text-destructive">Erreur: {fallbackError}</div>}
+          {fallbackError && (
+            <div className="text-sm text-destructive">
+              Erreur: {fallbackError}
+            </div>
+          )}
         </div>
       </div>
     </div>
