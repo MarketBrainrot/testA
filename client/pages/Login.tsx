@@ -18,12 +18,15 @@ const schema = z.object({
   password: z.string().min(6, "Minimum 6 caractères"),
 });
 
+import { useNavigate } from "react-router-dom";
+
 export default function Login() {
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { username: "", password: "" },
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   async function onSubmit(values: z.infer<typeof schema>) {
     const { signInWithEmailAndPassword } = await import("firebase/auth");
@@ -40,6 +43,7 @@ export default function Login() {
     const email = usernameToEmail(values.username);
     await signInWithEmailAndPassword(auth, email, values.password);
     toast({ title: `Connexion réussie`, description: values.username });
+    navigate("/", { replace: true });
   }
 
   return (
