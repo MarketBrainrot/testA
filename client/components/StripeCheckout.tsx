@@ -39,9 +39,19 @@ export default function StripeCheckout({
         }),
       });
 
-      // Clone response first to avoid "body stream already read" if something else accessed it
-      const clone = resp.clone();
-      const bodyText = await clone.text();
+      // Read response body safely. Prefer clone(), but if clone() fails (body already used), fall back to reading directly once.
+      let bodyText: string;
+      try {
+        bodyText = await resp.clone().text();
+      } catch (e) {
+        // clone failed because body stream already used — try reading the original response once
+        try {
+          bodyText = await resp.text();
+        } catch (e2) {
+          throw e2;
+        }
+      }
+
       let data: any = null;
       try {
         data = bodyText ? JSON.parse(bodyText) : {};
