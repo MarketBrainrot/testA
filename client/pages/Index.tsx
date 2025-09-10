@@ -166,7 +166,7 @@ export default function Index() {
                 variant="ghost"
                 className="border border-border/60"
               >
-                <Link to="/sell" className="inline-flex items-center gap-2">
+                <Link to="/marketplace" className="inline-flex items-center gap-2">
                   <Trophy className="h-4 w-4" />
                   Start Selling
                 </Link>
