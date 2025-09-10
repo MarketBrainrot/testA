@@ -121,12 +121,20 @@ export const createOrder: RequestHandler = async (req, res) => {
           );
           return res
             .status(422)
-            .json({ error: "payee_account_restricted", details: parsed });
+            .json({
+              error: "payee_account_restricted",
+              debug_id: parsed?.debug_id || parsed?.details?.[0]?.debug_id || null,
+              details: parsed,
+            });
         }
         console.error("PayPal create order failed:", status, parsed);
         return res
           .status(500)
-          .json({ error: "create_order_failed", details: parsed });
+          .json({
+            error: "create_order_failed",
+            debug_id: parsed?.debug_id || null,
+            details: parsed,
+          });
       } catch (e) {
         console.error(
           "PayPal create order failed (non-JSON):",
