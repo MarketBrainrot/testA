@@ -30,6 +30,13 @@ export async function createServer() {
   }
 
   try {
+    const { createOrder } = await import("./routes/createOrder");
+    app.post("/api/paypal/create-order", createOrder);
+  } catch (e) {
+    console.warn("Could not load createOrder route:", e?.message || e);
+  }
+
+  try {
     const { moderateHandler } = await import("./routes/moderation");
     app.post("/api/moderate", moderateHandler);
   } catch (e) {

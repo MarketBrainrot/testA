@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminPanel from "./pages/AdminPanel";
 import AdminRoles from "./pages/AdminRoles";
+import Sell from "./pages/Sell";
 import PrivateRoute from "@/components/PrivateRoute";
 import { AuthProvider } from "@/context/AuthProvider";
 import { ProfileProvider } from "@/context/ProfileProvider";
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route element={<PrivateRoute />}>
                   <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/sell" element={<Sell />} />
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/rotcoins" element={<Shop />} />
                   <Route path="/quests" element={<Quests />} />

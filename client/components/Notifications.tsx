@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import { db } from "@/lib/firebase";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
@@ -36,19 +37,7 @@ export default function Notifications() {
     <Dialog>
       <DialogTrigger asChild>
         <button className="relative inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/60">
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
+          <Bell className="h-5 w-5" />
           {unread > 0 && (
             <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-white">
               {unread}

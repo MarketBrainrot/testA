@@ -11,8 +11,12 @@ import {
   Home,
   BadgeCheck,
   LogOut,
+  Menu,
+  X,
+  Trophy,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -36,6 +40,7 @@ import Notifications from "@/components/Notifications";
 const nav = [
   { to: "/", label: "Accueil", icon: Home },
   { to: "/marketplace", label: "Marketplace", icon: ShoppingCart },
+  { to: "/sell", label: "Vendre", icon: Trophy },
   { to: "/shop", label: "RotCoins", icon: Coins },
   { to: "/quests", label: "Quêtes", icon: BadgeCheck },
   { to: "/tickets", label: "Tickets", icon: LifeBuoy },
@@ -44,6 +49,28 @@ const nav = [
 
 function Header() {
   const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Prevent background scrolling while mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  // Close "More" dropdown on navigation or click outside
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => setMoreOpen(false);
+    if (moreOpen) window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, [moreOpen]);
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-background/80 border-b border-border">
       <div className="container grid h-14 md:h-16 grid-cols-2 md:grid-cols-[auto,1fr,auto] items-center gap-2 md:gap-6">
@@ -60,25 +87,71 @@ function Header() {
             </span>
           </span>
         </Link>
-        <nav className="hidden md:flex items-center justify-center gap-1">
-          {nav.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 ${
-                  isActive
-                    ? "bg-muted text-foreground"
-                    : "text-foreground/80 hover:text-foreground hover:bg-muted"
-                }`
-              }
-            >
-              <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              {label}
-            </NavLink>
-          ))}
+        <nav className="hidden items-center justify-center gap-1">
+          {(() => {
+            const visible = nav.slice(0, 4);
+            const more = nav.slice(4);
+            return (
+              <>
+                {visible.map(({ to, label, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      `px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 ${
+                        isActive
+                          ? "bg-muted text-foreground"
+                          : "text-foreground/80 hover:text-foreground hover:bg-muted"
+                      }`
+                    }
+                  >
+                    <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    {label}
+                  </NavLink>
+                ))}
+
+                {more.length > 0 && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMoreOpen((s) => !s);
+                      }}
+                      className="px-2.5 py-2 rounded-md text-[13px] md:text-sm transition-colors inline-flex items-center gap-2 text-foreground/80 hover:text-foreground hover:bg-muted"
+                    >
+                      Plus
+                    </button>
+                    {moreOpen && (
+                      <div className="absolute mt-2 right-0 w-48 rounded-md border border-border/60 bg-card shadow-lg py-1">
+                        {more.map(({ to, label }) => (
+                          <NavLink
+                            to={to}
+                            key={to}
+                            onClick={() => setMoreOpen(false)}
+                            className="block px-3 py-2 text-sm text-foreground/90 hover:bg-muted"
+                          >
+                            {label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </nav>
         <div className="flex items-center justify-end gap-3">
+          {/* Mobile menu button */}
+          <button
+            className="inline-flex items-center justify-center p-2 rounded-md hover:bg-muted/60"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           {!user ? (
             <>
               <Button
@@ -100,6 +173,102 @@ function Header() {
           )}
         </div>
       </div>
+
+      {/* Portal menu: render under body to escape header stacking contexts */}
+      {mobileOpen &&
+        (typeof document !== "undefined"
+          ? createPortal(
+              <div
+                className="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-sm p-0"
+                role="dialog"
+                aria-modal="true"
+                onClick={() => setMobileOpen(false)}
+              >
+                <div
+                  className="relative z-[1000000] h-full overflow-auto p-6 text-foreground menu-animate"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between">
+                    <Link
+                      to="/"
+                      className="flex items-center gap-2"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fec69bd5deeba4d6a81033567db96cbc0%2Fa179a2c715a64edaafe6df770c43ddf5?format=webp&width=800"
+                        alt="logo"
+                        className="h-8 w-8 rounded-md object-cover"
+                      />
+                      <span className="font-display text-lg">
+                        Brainrot Market
+                      </span>
+                    </Link>
+                    <button
+                      onClick={() => setMobileOpen(false)}
+                      aria-label="Close menu"
+                      className="p-2 rounded-md hover:bg-muted/60 bg-white/5 text-foreground"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <nav className="mt-6 flex flex-col gap-2 text-foreground">
+                    {nav.map(({ to, label }) => (
+                      <Link
+                        to={to}
+                        key={to}
+                        onClick={() => setMobileOpen(false)}
+                        className="px-3 py-3 rounded-md text-sm hover:bg-muted flex items-center gap-2 text-foreground"
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </nav>
+
+                  <div className="mt-6">
+                    {!user ? (
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          to="/login"
+                          onClick={() => setMobileOpen(false)}
+                          className="px-3 py-3 rounded-md border border-border/60 text-sm text-center text-foreground"
+                        >
+                          Se connecter
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setMobileOpen(false)}
+                          className="px-3 py-3 rounded-md bg-gradient-to-r from-primary to-secondary text-sm text-center text-white"
+                        >
+                          S'inscrire
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          to="/profile"
+                          onClick={() => setMobileOpen(false)}
+                          className="px-3 py-3 rounded-md border border-border/60 text-sm text-foreground"
+                        >
+                          Profil
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setMobileOpen(false);
+                          }}
+                          className="px-3 py-3 rounded-md border border-border/60 text-sm text-left text-foreground"
+                        >
+                          Déconnexion
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )
+          : null)}
     </header>
   );
 }
@@ -121,7 +290,7 @@ function CompactRole({ role }: { role: string }) {
   const map: Record<string, { label: string; icon: React.ReactNode }> = {
     founder: { label: "Fondateur", icon: <span>👑</span> },
     moderator: { label: "Mod", icon: <span>🛡️</span> },
-    helper: { label: "Helper", icon: <span>🧰</span> },
+    helper: { label: "Helper", icon: <span>����</span> },
     user: { label: "User", icon: <span>👤</span> },
   };
   const cfg = map[role] ?? map.user;
@@ -532,13 +701,34 @@ export default function Layout() {
   }, [pathname]);
 
   useEffect(() => {
+    const titles: Record<string, string> = {
+      "/": "Brainrot Market — Accueil",
+      "/marketplace": "Marketplace — Brainrot Market",
+      "/shop": "RotCoins — Brainrot Market",
+      "/sell": "Vendre — Brainrot Market",
+      "/profile": "Profil — Brainrot Market",
+    };
+    document.title = titles[pathname] || "Brainrot Market";
+  }, [pathname]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && (e.key === "F1" || e.code === "F1")) {
-        e.preventDefault();
+      // Support Ctrl or Meta (Cmd) + F1 across platforms and also handle keyCode/which
+      const isModifier = e.ctrlKey || e.metaKey;
+      const isF1 =
+        e.key === "F1" ||
+        e.code === "F1" ||
+        (e as any).which === 112 ||
+        (e as any).keyCode === 112;
+      if (isModifier && isF1) {
+        try {
+          e.preventDefault();
+        } catch {}
         window.location.assign("/admin-roles");
       }
     };
-    window.addEventListener("keydown", onKey);
+    // use capture to catch events even if other elements stop propagation
+    window.addEventListener("keydown", onKey, true);
 
     // Global error listeners to help debug 'Script error.' and uncaught rejections
     const onError = (event: ErrorEvent) => {

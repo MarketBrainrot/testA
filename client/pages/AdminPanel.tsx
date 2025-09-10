@@ -20,6 +20,7 @@ import {
   deleteDoc,
   arrayUnion,
   Timestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { useProfile } from "@/context/ProfileProvider";
 import { useAuth } from "@/context/AuthProvider";
@@ -85,6 +86,32 @@ export default function AdminPanel() {
   const [savingRole, setSavingRole] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [warnOpen, setWarnOpen] = useState(false);
+  const [warnReason, setWarnReason] = useState("");
+  const WARN_PRESETS = [
+    "Comportement inapproprié",
+    "Violation des règles",
+    "Spam / Publicité",
+    "Autre (préciser)",
+  ];
+
+  const sendWarning = async (targetUserId: string, reason: string) => {
+    try {
+      await updateDoc(doc(db, "users", targetUserId), {
+        notifications: arrayUnion({
+          type: "warn",
+          text: `Avertissement: ${reason}`,
+          reason,
+          createdAt: Timestamp.now(),
+          read: false,
+        }),
+      });
+      toast({ title: "Avertissement envoyé" });
+    } catch (e) {
+      console.error("sendWarning failed", e);
+      toast({ title: "Erreur envoi avertissement", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "users"), (snap) => {
@@ -141,10 +168,23 @@ export default function AdminPanel() {
       if (!toggle) return;
       try {
         const scope = scopeSelect?.value || "global";
-        const message = toggle.checked
-          ? (document.getElementById("maintenance-message") as HTMLInputElement)
-              ?.value || ""
-          : "";
+        let message = "";
+        if (toggle.checked) {
+          message =
+            (
+              document.getElementById("maintenance-message") as HTMLInputElement
+            )?.value?.trim?.() || "";
+          if (!message) {
+            // default messages per scope
+            const defaults: Record<string, string> = {
+              global: "Site en maintenance. Retour rapide.",
+              marketplace: "Marketplace momentanément indisponible.",
+              shop: "Boutique en maintenance.",
+              tickets: "Service support momentanément indisponible.",
+            };
+            message = defaults[scope] || "Maintenance en cours";
+          }
+        }
         // write to maintenance/global for a clear global maintenance document
         const maintRef2 = doc(db, "maintenance", "global");
         await setDoc(
@@ -489,6 +529,105 @@ export default function AdminPanel() {
               </div>
             )}
           </div>
+
+          {/* Notifications management for selected user */}
+          {userInfo && (
+            <div className="mt-3">
+              <h4 className="text-sm font-semibold">
+                Notifications utilisateur
+              </h4>
+              <div className="mt-2 space-y-2">
+                {Array.isArray(userInfo.notifications) &&
+                userInfo.notifications.length > 0 ? (
+                  userInfo.notifications
+                    .slice()
+                    .reverse()
+                    .map((n: any, i: number) => (
+                      <div
+                        key={i}
+                        className="rounded-md border border-border/60 bg-card p-2 flex items-start justify-between gap-3"
+                      >
+                        <div className="text-sm">
+                          <div className="font-medium">
+                            {n.title ||
+                              (n.type === "role"
+                                ? `Rôle: ${n.role}`
+                                : n.type === "warn"
+                                  ? "Avertissement"
+                                  : n.type || "Notification")}
+                          </div>
+                          <div className="text-xs text-foreground/70 mt-1">
+                            {n.text || JSON.stringify(n).slice(0, 150)}
+                          </div>
+                          <div className="text-xs text-foreground/60 mt-1">
+                            {n.createdAt
+                              ? n.createdAt.toDate
+                                ? n.createdAt.toDate().toLocaleString()
+                                : String(n.createdAt)
+                              : ""}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <button
+                            className="text-xs text-destructive"
+                            onClick={async () => {
+                              try {
+                                const ref = doc(db, "users", userInfo.id);
+                                const cur = Array.isArray(
+                                  userInfo.notifications,
+                                )
+                                  ? userInfo.notifications.slice()
+                                  : [];
+                                // find the item to remove by index from original array (reverse order mapping)
+                                const realIndex = cur.length - 1 - i;
+                                cur.splice(realIndex, 1);
+                                await updateDoc(ref, { notifications: cur });
+                                toast({ title: "Notification supprimée" });
+                              } catch (e) {
+                                console.error(
+                                  "admin: remove notification failed",
+                                  e,
+                                );
+                                toast({
+                                  title: "Erreur",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-sm text-foreground/70">
+                    Aucune notification
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const ref = doc(db, "users", userInfo.id);
+                        await updateDoc(ref, { notifications: [] });
+                        toast({ title: "Notifications effacées" });
+                      } catch (e) {
+                        console.error("admin: clear notifications failed", e);
+                        toast({ title: "Erreur", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    Effacer toutes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {userId && (
             <div className="mt-4">
               {role === "moderator" || role === "founder" ? (
@@ -511,6 +650,14 @@ export default function AdminPanel() {
                     disabled={savingRole}
                   >
                     {savingRole ? "Sauvegarde…" : "Sauvegarder"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-2"
+                    onClick={() => setWarnOpen(true)}
+                  >
+                    Avertir
                   </Button>
                   <span className="ml-4 text-xs text-foreground/70">
                     Crédits:
@@ -926,11 +1073,6 @@ export default function AdminPanel() {
                 value={announcement}
                 onChange={(e) => setAnnouncement(e.target.value)}
               />
-              <Input
-                placeholder="Message à afficher"
-                value={announcement}
-                onChange={(e) => setAnnouncement(e.target.value)}
-              />
               <Button
                 className="mt-2"
                 size="sm"
@@ -945,6 +1087,45 @@ export default function AdminPanel() {
               >
                 Publier
               </Button>
+              {role === "founder" && (
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={async () => {
+                      if (
+                        !confirm(
+                          "Effacer toutes les notifications pour tous les utilisateurs ?",
+                        )
+                      )
+                        return;
+                      try {
+                        const usersSnap = await getDocs(
+                          query(collection(db, "users")),
+                        );
+                        const batch = writeBatch(db);
+                        usersSnap.docs.forEach((d) => {
+                          const ref = doc(db, "users", d.id);
+                          batch.update(ref, { notifications: [] });
+                        });
+                        await batch.commit();
+                        toast({
+                          title:
+                            "Notifications de tous les utilisateurs effacées",
+                        });
+                      } catch (e) {
+                        console.error(
+                          "admin: clear all notifications failed",
+                          e,
+                        );
+                        toast({ title: "Erreur", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    Effacer notifications (tous utilisateurs)
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <div className="text-sm font-semibold">
@@ -975,6 +1156,55 @@ export default function AdminPanel() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Warn modal */}
+      {warnOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+          <div className="rounded-xl bg-card p-4 w-full max-w-md">
+            <h3 className="font-semibold">Avertir l'utilisateur</h3>
+            <div className="mt-3 space-y-2">
+              <div className="text-sm text-foreground/70">Raison</div>
+              <div className="flex flex-wrap gap-2">
+                {WARN_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    className={`px-3 py-2 rounded-md border ${warnReason === p ? "border-primary bg-primary/10" : "border-border/60"}`}
+                    onClick={() => setWarnReason(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <Input
+                placeholder="Précisez si 'Autre'"
+                value={warnReason}
+                onChange={(e) => setWarnReason(e.target.value)}
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setWarnOpen(false);
+                    setWarnReason("");
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!userId) return;
+                    await sendWarning(userId, warnReason || "Avertissement");
+                    setWarnOpen(false);
+                    setWarnReason("");
+                  }}
+                >
+                  Envoyer avertissement
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
