@@ -18,9 +18,10 @@ export default function Profile() {
     if (!user) return;
     setSaving(true);
     try {
+      const cleanAvatar = avatarUrl?.replace(/&amp;/g, "&") || avatarUrl;
       await setDoc(
         doc(db, "users", user.uid),
-        { displayName, avatarUrl },
+        { displayName, avatarUrl: cleanAvatar },
         { merge: true },
       );
       try {
@@ -29,9 +30,11 @@ export default function Profile() {
         if (mod.auth && mod.auth.currentUser)
           await updateProfile(mod.auth.currentUser, {
             displayName,
-            photoURL: avatarUrl,
+            photoURL: cleanAvatar,
           });
-      } catch {}
+      } catch (e) {
+        console.warn("updateProfile failed", e);
+      }
       toast({ title: "Profil enregistré" });
     } finally {
       setSaving(false);
