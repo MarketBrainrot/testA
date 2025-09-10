@@ -26,7 +26,7 @@ export default function StripeCheckout({
       const origin = window.location.origin;
       const resp = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
           amount,
           currency,
@@ -39,26 +39,17 @@ export default function StripeCheckout({
         }),
       });
 
-      // Read response body safely. Prefer clone(), but if clone() fails (body already used), fall back to reading directly once.
-      let bodyText: string;
-      try {
-        bodyText = await resp.clone().text();
-      } catch (e) {
-        // clone failed because body stream already used — try reading the original response once
-        try {
-          bodyText = await resp.text();
-        } catch (e2) {
-          throw e2;
-        }
-      }
-
+      // Read JSON once
       let data: any = null;
       try {
-        data = bodyText ? JSON.parse(bodyText) : {};
+        data = await resp.json();
       } catch (e) {
-        data = { text: bodyText };
+        // If parsing JSON fails, provide helpful error
+        const txt = await resp.text().catch(() => "");
+        throw new Error(data?.error || data?.message || txt || "invalid_json_response");
       }
-      if (!resp.ok) throw new Error(data?.error || data?.message || data?.text || "request_failed");
+
+      if (!resp.ok) throw new Error(data?.error || data?.message || "request_failed");
 
       const sessionId = data?.id as string | undefined;
       if (!sessionId) throw new Error("no_session_id_returned");
