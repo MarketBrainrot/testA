@@ -43,5 +43,15 @@ export async function createServer() {
     console.warn("Could not load moderation route:", e?.message || e);
   }
 
+  try {
+    const { createCheckoutSession, verifySession } = await import(
+      "./routes/stripe"
+    );
+    app.post("/api/stripe/create-checkout-session", createCheckoutSession);
+    app.get("/api/stripe/verify-session", verifySession);
+  } catch (e) {
+    console.warn("Could not load stripe routes:", e?.message || e);
+  }
+
   return app;
 }
